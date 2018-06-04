@@ -289,8 +289,9 @@ open class BaseButtonBarPagerTabStripViewController<ButtonBarCellType: UICollect
         collectionViewContentWidth += cellSpacingTotal
 
         let collectionViewAvailableVisibleWidth = buttonBarView.frame.size.width - flowLayout.sectionInset.left - flowLayout.sectionInset.right
+        let multiplier: CGFloat = collectionViewAvailableVisibleWidth / (collectionViewContentWidth - cellSpacingTotal)
 
-        if !settings.style.buttonBarItemsShouldFillAvailableWidth || collectionViewAvailableVisibleWidth < collectionViewContentWidth {
+        if (settings.style.buttonBarItemsAvailableWidthFillingType == .doNotFill) || collectionViewAvailableVisibleWidth < collectionViewContentWidth {
             return minimumCellWidths
         } else {
             let stretchedCellWidthIfAllEqual = (collectionViewAvailableVisibleWidth - cellSpacingTotal) / CGFloat(numberOfCells)
@@ -298,7 +299,14 @@ open class BaseButtonBarPagerTabStripViewController<ButtonBarCellType: UICollect
             var stretchedCellWidths = [CGFloat]()
 
             for minimumCellWidthValue in minimumCellWidths {
-                let cellWidth = (minimumCellWidthValue > generalMinimumCellWidth) ? minimumCellWidthValue : generalMinimumCellWidth
+                var cellWidth: CGFloat
+
+                if settings.style.buttonBarItemsAvailableWidthFillingType == .fillProportionally {
+                    cellWidth = minimumCellWidthValue * multiplier
+                } else {
+                    cellWidth = (minimumCellWidthValue > generalMinimumCellWidth) ? minimumCellWidthValue : generalMinimumCellWidth
+                }
+
                 stretchedCellWidths.append(cellWidth)
             }
 
@@ -328,7 +336,7 @@ open class ExampleBaseButtonBarPagerTabStripViewController: BaseButtonBarPagerTa
                 bundle = resourcesBundle
             }
         }
-        
+
         buttonBarItemSpec = .nibFile(nibName: "ButtonCell", bundle: bundle, width: { [weak self] (childItemInfo) -> CGFloat in
             let label = UILabel()
             label.translatesAutoresizingMaskIntoConstraints = false

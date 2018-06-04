@@ -41,7 +41,7 @@ class SpotifyExampleViewController: ButtonBarPagerTabStripViewController {
         settings.style.selectedBarHeight = 3.0
         settings.style.buttonBarMinimumLineSpacing = 0
         settings.style.buttonBarItemTitleColor = .black
-        settings.style.buttonBarItemsShouldFillAvailableWidth = true
+        settings.style.buttonBarItemsAvailableWidthFillingType = .fillEqually
 
         settings.style.buttonBarLeftContentInset = 20
         settings.style.buttonBarRightContentInset = 20

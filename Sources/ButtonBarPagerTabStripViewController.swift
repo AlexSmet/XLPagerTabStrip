@@ -39,6 +39,12 @@ public enum ButtonBarItemSpec<CellType: UICollectionViewCell> {
     }
 }
 
+public enum ButtonBarWidthFillingType {
+    case doNotFill
+    case fillEqually
+    case fillProportionally
+}
+
 public struct ButtonBarPagerTabStripSettings {
 
     public struct Style {
@@ -58,13 +64,13 @@ public struct ButtonBarPagerTabStripSettings {
         public var buttonBarItemTitleColor: UIColor?
         @available(*, deprecated: 7.0.0) public var buttonBarItemsShouldFillAvailiableWidth: Bool {
             set {
-                buttonBarItemsShouldFillAvailableWidth = newValue
+                buttonBarItemsAvailableWidthFillingType = newValue ? .fillEqually : .doNotFill
             }
             get {
-                return buttonBarItemsShouldFillAvailableWidth
+                return (buttonBarItemsAvailableWidthFillingType != .doNotFill)
             }
         }
-        public var buttonBarItemsShouldFillAvailableWidth = true
+        public var buttonBarItemsAvailableWidthFillingType: ButtonBarWidthFillingType = .fillEqually
         // only used if button bar is created programaticaly and not using storyboards or nib files
         public var buttonBarHeight: CGFloat?
     }
@@ -392,8 +398,9 @@ open class ButtonBarPagerTabStripViewController: PagerTabStripViewController, Pa
         collectionViewContentWidth += cellSpacingTotal
 
         let collectionViewAvailableVisibleWidth = buttonBarView.frame.size.width - flowLayout.sectionInset.left - flowLayout.sectionInset.right
+        let multiplier: CGFloat = collectionViewAvailableVisibleWidth / (collectionViewContentWidth - cellSpacingTotal)
 
-        if !settings.style.buttonBarItemsShouldFillAvailableWidth || collectionViewAvailableVisibleWidth < collectionViewContentWidth {
+        if (settings.style.buttonBarItemsAvailableWidthFillingType == .doNotFill) || collectionViewAvailableVisibleWidth < collectionViewContentWidth {
             return minimumCellWidths
         } else {
             let stretchedCellWidthIfAllEqual = (collectionViewAvailableVisibleWidth - cellSpacingTotal) / CGFloat(numberOfCells)
@@ -401,7 +408,14 @@ open class ButtonBarPagerTabStripViewController: PagerTabStripViewController, Pa
             var stretchedCellWidths = [CGFloat]()
 
             for minimumCellWidthValue in minimumCellWidths {
-                let cellWidth = (minimumCellWidthValue > generalMinimumCellWidth) ? minimumCellWidthValue : generalMinimumCellWidth
+                var cellWidth: CGFloat
+
+                if settings.style.buttonBarItemsAvailableWidthFillingType == .fillProportionally {
+                    cellWidth = minimumCellWidthValue * multiplier
+                } else {
+                    cellWidth = (minimumCellWidthValue > generalMinimumCellWidth) ? minimumCellWidthValue : generalMinimumCellWidth
+                }
+
                 stretchedCellWidths.append(cellWidth)
             }
 
